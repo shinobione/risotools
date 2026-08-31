@@ -1,0 +1,19 @@
+(async()=>{try{
+const u='https://api.github.com/repos/shinobione/risotools/contents/astea/astea-v811-mobile.js?ref=main&t='+Date.now();
+const r=await fetch(u,{cache:'no-store',headers:{Accept:'application/vnd.github+json'}});if(!r.ok)throw Error('GitHub API '+r.status);
+const j=await r.json();if(!j.content)throw Error('V8.11 absente');
+const b=atob(j.content.replace(/\s/g,'')),a=Uint8Array.from(b,c=>c.charCodeAt(0));let s=new TextDecoder().decode(a);
+
+const re=/const openOne=async x=>\{[\s\S]*?\};\nfor\(let n=0;n<liveBasics\.length;n\+\+\)/;
+const replacement=`const targetCard=async id=>{let h=findId(id);if(!h)return null;h.scrollIntoView?.({block:'center',inline:'nearest',behavior:'auto'});await S(260);h=findId(id)||h;let e=h,cands=[];for(let k=0;k<10&&e&&e!==document.body;k++,e=e.parentElement){const tx=T(e),n=(tx.match(WO)||[]).map(v=>v.toUpperCase()),rr=e.getBoundingClientRect();if(n.length===1&&n[0]===id.toUpperCase()&&rr.width>240&&rr.height>120){const acts=clickables(e);if(acts.length>=2)cands.push({e,acts,h:rr.height})}}if(cands.length)return cands.sort((a,b)=>a.h-b.h)[0].e;return card(id)};
+const leftFooter=async(id,c)=>{if(!c)return null;let acts=clickables(c);let rr=c.getBoundingClientRect();let cand=acts.filter(e=>{const q=e.getBoundingClientRect();return q.top>rr.top+Math.max(120,rr.height*.45)&&q.left<rr.left+Math.min(rr.width*.55,innerWidth*.55)&&q.width<150&&q.height<150});if(!cand.length){const exp=acts.filter(e=>{const q=e.getBoundingClientRect();return q.right>rr.right-140&&q.top<rr.top+150&&q.width<150&&q.height<150}).sort((a,b)=>b.getBoundingClientRect().right-a.getBoundingClientRect().right)[0];if(exp){click(exp);await S(300);c=await targetCard(id)||c;acts=clickables(c);rr=c.getBoundingClientRect();cand=acts.filter(e=>{const q=e.getBoundingClientRect();return q.top>rr.top+Math.max(120,rr.height*.45)&&q.left<rr.left+Math.min(rr.width*.55,innerWidth*.55)&&q.width<150&&q.height<150})}}if(!cand.length)return null;const maxTop=Math.max(...cand.map(e=>e.getBoundingClientRect().top));return cand.filter(e=>e.getBoundingClientRect().top>=maxTop-55).sort((a,b)=>a.getBoundingClientRect().left-b.getBoundingClientRect().left)[0]||null};
+const openOne=async x=>{try{await goWork()}catch{};await S(180);let c=await targetCard(x.id),fb=cardFallback(c,x.id);if(!c)return{...x,...fb,currentETA:x.date,error:'Carte introuvable'};let btn=await leftFooter(x.id,c);if(!btn)return{...x,...fb,currentETA:x.date,error:'Bouton Aperçu introuvable'};click(btn);let d=await waitOverview(x.id,28);if(!d){await closeOverview();try{await goWork()}catch{};await S(220);c=await targetCard(x.id)||c;btn=await leftFooter(x.id,c);if(btn){click(btn);d=await waitOverview(x.id,28)}}if(!d){await closeOverview();try{await goWork()}catch{};return{...x,...fb,currentETA:x.date,error:'Aperçu '+x.id+' non ouvert'}}const info=parseOverview(d),whole=parseOverview(document.body);for(const k of ['company','site','address','requestType','machine','productId','serial','contact','phone','problem','orderETA','currentETA'])if(!info[k]&&whole[k])info[k]=whole[k];for(const k of ['company','address','contact','phone','problem'])if(!info[k]&&fb[k])info[k]=fb[k];if(!info.currentETA)info.currentETA=x.date;const ok=await closeOverview(x.id);if(!ok)info.error='Fermeture Aperçu échouée';try{await goWork()}catch{};await S(180);return{...x,...info}};
+for(let n=0;n<liveBasics.length;n++)`;
+if(!re.test(s))throw Error('Patch openOne V8.11 introuvable');s=s.replace(re,replacement);
+
+const tail="s=s.replaceAll('V8.4','V8.11');eval(s);";
+const tail2="s=s.replace(\"const KEY='astea_v84_mobile_last_scan';\",\"const KEY='astea_v812_mobile_last_scan';\");s=s.replaceAll('V8.4','V8.12');eval(s);";
+if(!s.includes(tail))throw Error('Patch baseline V8.11 introuvable');s=s.replace(tail,tail2);
+
+eval(s);
+}catch(e){alert('ASTEA V8.12 loader: '+e.message)}})();
