@@ -1,0 +1,17 @@
+(async()=>{try{
+const fetchCode=async path=>{const u='https://api.github.com/repos/shinobione/risotools/contents/'+path+'?ref=main&t='+Date.now();const r=await fetch(u,{cache:'no-store',headers:{Accept:'application/vnd.github+json'}});if(!r.ok)throw Error('GitHub API '+r.status);const j=await r.json();if(!j.content)throw Error(path+' absent');const b=atob(j.content.replace(/\s/g,'')),a=Uint8Array.from(b,c=>c.charCodeAt(0));return new TextDecoder().decode(a)};
+const run=async path=>{document.getElementById('shinoAsteaLauncher')?.remove();eval(await fetchCode(path))};
+const STOCK_KEY='shinoastea_stock_cache_v1';let stock=null;try{stock=JSON.parse(localStorage.getItem(STOCK_KEY)||'null')}catch{}
+const onStock=/\b(?:Available|Disponible)\s*:/i.test(document.body.innerText||'')||/^\s*(Stock|Inventory)\b/i.test(document.body.innerText||'');
+let old=document.getElementById('shinoAsteaLauncher');if(old)old.remove();
+const ov=document.createElement('div');ov.id='shinoAsteaLauncher';ov.style='position:fixed;inset:0;z-index:2147483647;background:#111d;color:#fff;display:flex;align-items:center;justify-content:center;font-family:Arial;padding:18px';
+const card=document.createElement('div');card.style='width:min(430px,100%);background:#171717;border:1px solid #444;border-radius:18px;padding:18px;box-shadow:0 12px 40px #0009';
+const title=document.createElement('div');title.innerHTML='<div style="font-size:22px;font-weight:800">ShinoAstea</div><div style="opacity:.8;margin-top:5px">Mobile stable — modules séparés</div>';title.style='margin-bottom:16px';
+const info=document.createElement('div');const cache=stock?.useful?.length?`${stock.useful.length} refs utiles • ${new Date(stock.ts).toLocaleString()}`:'aucun stock mémorisé';info.textContent='Stock cache : '+cache;info.style='background:#222;padding:10px 12px;border-radius:10px;margin-bottom:14px;font-size:13px';
+const mk=(txt,fn)=>{const b=document.createElement('button');b.textContent=txt;b.style='width:100%;min-height:58px;margin:6px 0;border:0;border-radius:12px;font-weight:800;font-size:16px';b.onclick=fn;return b};
+const b1=mk('⚡ SCAN INTERVENTIONS + STOCK CACHE',()=>run('astea/astea-v91-pack-mobile.js'));
+const b2=mk('🚚 RAFRAÎCHIR STOCK',async()=>{if(!onStock){alert('Ouvre d’abord LOGISTIQUE > Stock dans Astea, attends que les pièces apparaissent, puis relance ShinoAstea et choisis RAFRAÎCHIR STOCK.\n\nAucune navigation automatique : c’est volontaire pour rester fiable.');return}await run('astea/astea-stock-refresh-mobile.js')});
+const b3=mk('📦 VOIR STOCK CACHE',()=>{if(!stock?.useful?.length){alert('Aucun stock mémorisé pour le moment.');return}const txt=`STOCK CACHE — ${new Date(stock.ts).toLocaleString()}\n${stock.useful.length} références disponibles\n\n${stock.useful.map(x=>`${x.ref} | ${x.desc} | QTY ${x.available}`).join('\n')}`;const ta=document.createElement('textarea');ta.value=txt;ta.readOnly=true;ta.style='width:100%;height:45vh;background:#111;color:#eee;border:1px solid #555;border-radius:10px;padding:10px;font:12px monospace;box-sizing:border-box;margin-top:10px';info.after(ta)});
+const close=mk('✕ FERMER',()=>ov.remove());close.style.marginTop='14px';close.style.opacity='.85';
+card.append(title,info,b1,b2,b3,close);ov.append(card);document.body.append(ov);
+}catch(e){alert('ShinoAstea launcher : '+e.message)}})();
